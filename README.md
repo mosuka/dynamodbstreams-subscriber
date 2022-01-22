@@ -1,7 +1,7 @@
 # dynamodbstreams-subscriber
 Go channel for streaming DynamoDB Updates
 
-Forked from urakozz/go-dynamodb-stream-subscriber.
+Forked from [urakozz/go-dynamodb-stream-subscriber](https://github.com/urakozz/go-dynamodb-stream-subscriber).
 
 ```go
 package main
