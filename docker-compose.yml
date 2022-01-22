@@ -1,0 +1,10 @@
+version: "3.7"
+
+services:
+  localstack:
+    image: localstack/localstack:latest
+    environment:
+      SERVICES: ${LOCALSTACK_SERVICES}
+      DEFAULT_REGION: ${LOCALSTACK_DEFAULT_REGION}
+    ports:
+      - "4566:4566"
