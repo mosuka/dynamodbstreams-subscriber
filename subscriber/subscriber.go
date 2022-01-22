@@ -82,7 +82,6 @@ func (r *StreamSubscriber) GetStreamData() (<-chan *types.Record, <-chan error) 
 }
 
 func (r *StreamSubscriber) GetStreamDataAsync() (<-chan *types.Record, <-chan error) {
-
 	ch := make(chan *types.Record, 1)
 	errCh := make(chan error, 1)
 
@@ -90,23 +89,18 @@ func (r *StreamSubscriber) GetStreamDataAsync() (<-chan *types.Record, <-chan er
 	needUpdateChannel <- struct{}{}
 
 	allShards := make(map[string]struct{})
+
 	shardProcessingLimit := 5
 	shardsCh := make(chan *dynamodbstreams.GetShardIteratorInput, shardProcessingLimit)
 	lock := sync.Mutex{}
 
 	go func() {
 		tick := time.NewTicker(time.Minute)
+
 		for {
 			select {
 			case <-tick.C:
 				needUpdateChannel <- struct{}{}
-			}
-		}
-	}()
-
-	go func() {
-		for {
-			select {
 			case <-needUpdateChannel:
 				streamArn, err := r.getLatestStreamArn()
 				if err != nil {
@@ -130,10 +124,8 @@ func (r *StreamSubscriber) GetStreamDataAsync() (<-chan *types.Record, <-chan er
 					}
 					lock.Unlock()
 				}
-
 			}
 		}
-
 	}()
 
 	limit := make(chan struct{}, shardProcessingLimit)
@@ -152,6 +144,7 @@ func (r *StreamSubscriber) GetStreamDataAsync() (<-chan *types.Record, <-chan er
 			}(shardInput)
 		}
 	}()
+
 	return ch, errCh
 }
 
@@ -163,7 +156,7 @@ func (r *StreamSubscriber) getShardIds(streamArn *string) (ids []types.Shard, er
 		return nil, err
 	}
 	// No shards
-	if 0 == len(des.StreamDescription.Shards) {
+	if len(des.StreamDescription.Shards) == 0 {
 		return nil, nil
 	}
 
@@ -182,7 +175,7 @@ func (r *StreamSubscriber) findProperShardId(previousShardId *string) (shadrId *
 		return nil, nil, err
 	}
 
-	if 0 == len(des.StreamDescription.Shards) {
+	if len(des.StreamDescription.Shards) == 0 {
 		return nil, nil, nil
 	}
 
