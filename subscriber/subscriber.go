@@ -25,7 +25,7 @@ func NewStreamSubscriber(dynamoSvc *dynamodb.Client, streamSvc *dynamodbstreams.
 	s := &StreamSubscriber{
 		dynamoSvc: dynamoSvc,
 		streamSvc: streamSvc,
-		table:     &table,
+		table:     aws.String(table),
 		ctx:       context.Background(),
 	}
 	s.applyDefaults()
@@ -47,7 +47,6 @@ func (r *StreamSubscriber) SetShardIteratorType(s types.ShardIteratorType) {
 }
 
 func (r *StreamSubscriber) GetStreamData() (<-chan *types.Record, <-chan error) {
-
 	ch := make(chan *types.Record, 1)
 	errCh := make(chan error, 1)
 
@@ -72,7 +71,7 @@ func (r *StreamSubscriber) GetStreamData() (<-chan *types.Record, <-chan error) 
 				}
 			}
 			if shardId == nil {
-				time.Sleep(time.Second * 10)
+				time.Sleep(time.Second * 1)
 			}
 
 		}
@@ -95,7 +94,7 @@ func (r *StreamSubscriber) GetStreamDataAsync() (<-chan *types.Record, <-chan er
 	lock := sync.Mutex{}
 
 	go func() {
-		tick := time.NewTicker(time.Minute)
+		tick := time.NewTicker(time.Second * 1)
 
 		for {
 			select {
@@ -131,7 +130,7 @@ func (r *StreamSubscriber) GetStreamDataAsync() (<-chan *types.Record, <-chan er
 	limit := make(chan struct{}, shardProcessingLimit)
 
 	go func() {
-		time.Sleep(time.Second * 10)
+		time.Sleep(time.Second * 1)
 		for shardInput := range shardsCh {
 			limit <- struct{}{}
 			go func(sInput *dynamodbstreams.GetShardIteratorInput) {
@@ -252,7 +251,7 @@ func (r *StreamSubscriber) processShard(input *dynamodbstreams.GetShardIteratorI
 			sleepDuration = time.Millisecond * 10
 		} else if len(recs.Records) == 0 {
 			// Empty set, but shard is not closed -> sleep a little
-			sleepDuration = time.Second * 10
+			sleepDuration = time.Second * 2
 		}
 
 		time.Sleep(sleepDuration)
